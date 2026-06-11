@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="حاسبة فيبو">
+<title>حاسبة التوقيت الزمني</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background: #0a0f1e;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    color: #e2e8f0;
+    padding: 24px 16px 40px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.82rem;
+    margin-bottom: 28px;
+  }
+  .card {
+    background: #111827;
+    border: 1px solid #1e2d3d;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #4a9eff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .time-input-group { margin-bottom: 14px; }
+  .time-input-group label {
+    display: block;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin-bottom: 4px;
+  }
+  .hint {
+    display: block;
+    font-size: 0.72rem;
+    color: #475569;
+    margin-bottom: 6px;
+  }
+  .time-fields { display: flex; align-items: center; gap: 8px; }
+  .field-wrap { position: relative; }
+  .field-wrap input {
+    width: 75px;
+    background: #0d1526;
+    border: 1px solid #1e3a5f;
+    border-radius: 8px;
+    padding: 10px 28px 10px 12px;
+    color: #e2e8f0;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field-wrap input:focus { border-color: #4a9eff; }
+  .unit {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.72rem;
+    color: #475569;
+  }
+  .sep { color: #4a9eff; font-size: 1.2rem; font-weight: 700; }
+  .fibo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .fibo-btn {
+    background: #0d1526;
+    border: 1px solid #1e3a5f;
+    border-radius: 8px;
+    padding: 10px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .fibo-btn:hover { border-color: #4a9eff; color: #4a9eff; }
+  .fibo-btn.active {
+    background: #1a3a6e;
+    border-color: #4a9eff;
+    color: #4a9eff;
+    font-weight: 700;
+  }
+  .fibo-btn .ext-label {
+    font-size: 0.68rem;
+    color: #475569;
+    margin-top: 2px;
+  }
+  .fibo-btn.active .ext-label { color: #4a9eff; }
+  .auto-ext {
+    margin-top: 12px;
+    background: #0d1526;
+    border: 1px solid #1e3a5f;
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .auto-ext span:first-child { color: #64748b; font-size: 0.78rem; }
+  .auto-ext span:last-child { color: #4a9eff; font-weight: 700; font-size: 1rem; }
+  .calc-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #1a56db, #4a9eff);
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+    letter-spacing: 0.03em;
+    transition: opacity 0.2s;
+  }
+  .calc-btn:hover { opacity: 0.9; }
+  .results { margin-top: 20px; display: none; }
+  .results.visible { display: block; }
+  .entry-box {
+    background: linear-gradient(135deg, #0a2a0a, #0d3d1a);
+    border: 1px solid #16a34a;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .entry-label { font-size: 0.75rem; color: #4ade80; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .entry-value {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: #4ade80;
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+  }
+  .entry-sub { font-size: 0.75rem; color: #16a34a; margin-top: 4px; }
+  .window-box {
+    background: #0d1a2e;
+    border: 1px solid #1e3a5f;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+  }
+  .window-title { font-size: 0.72rem; color: #4a9eff; margin-bottom: 8px; }
+  .window-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    margin-bottom: 4px;
+  }
+  .window-row label { color: #94a3b8; }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #1e2d3d;
+    font-size: 0.85rem;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-row.hl {
+    background: #0d1f3c;
+    margin: 0 -20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border-bottom: none;
+    margin-bottom: 4px;
+  }
+  .result-row.sub label { color: #475569; font-size: 0.78rem; }
+  .result-row.sub .val { color: #64748b; font-size: 0.82rem; }
+  .result-row label { color: #94a3b8; }
+  .val {
+    color: #e2e8f0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+  }
+  .countdown-box {
+    background: #0d1526;
+    border: 1px solid #1e3a5f;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .countdown-num {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #4a9eff;
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    line-height: 1;
+  }
+  .progress-bar {
+    height: 6px;
+    background: #1e2d3d;
+    border-radius: 3px;
+    margin: 12px 0 8px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1a56db, #4a9eff);
+    border-radius: 3px;
+    transition: width 1s linear;
+    width: 0%;
+  }
+  .cd-sub { font-size: 0.8rem; color: #64748b; margin-bottom: 12px; }
+  .start-btn {
+    background: #16a34a;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 28px;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .stop-btn {
+    background: #dc2626;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 28px;
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .ring {
+    font-size: 1.8rem;
+    animation: pulse 0.5s ease infinite alternate;
+    margin-bottom: 8px;
+  }
+  @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
+  .window-divider {
+    border-top: 1px solid #1e3a5f;
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<h1>⚡ حاسبة التوقيت الزمني</h1>
+<p class="subtitle">فيبوناتشي الزمني × السعري — نقطة الدخول الدقيقة</p>
+
+<!-- البيانات -->
+<div class="card">
+  <div class="card-title">📊 البيانات الزمنية</div>
+
+  <div class="time-input-group">
+    <label>زمن الموجة الأم</label>
+    <span class="hint">الموجة الرئيسية الهابطة أو الصاعدة</span>
+    <div class="time-fields">
+      <div class="field-wrap">
+        <input type="number" id="motherMin" min="0" placeholder="0">
+        <span class="unit">د</span>
+      </div>
+      <span class="sep">:</span>
+      <div class="field-wrap">
+        <input type="number" id="motherSec" min="0" max="59" placeholder="0">
+        <span class="unit">ث</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="time-input-group">
+    <label>زمن التصحيح الفعلي</label>
+    <span class="hint">من نهاية الموجة حتى القمة / القاع</span>
+    <div class="time-fields">
+      <div class="field-wrap">
+        <input type="number" id="corrMin" min="0" placeholder="0">
+        <span class="unit">د</span>
+      </div>
+      <span class="sep">:</span>
+      <div class="field-wrap">
+        <input type="number" id="corrSec" min="0" max="59" placeholder="0">
+        <span class="unit">ث</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- فيبوناتشي -->
+<div class="card">
+  <div class="card-title">📐 مستوى فيبوناتشي للتصحيح</div>
+  <div class="fibo-grid" id="fiboGrid">
+    <button class="fibo-btn" data-val="0.236" data-ext="4.237" onclick="selectFibo(this)">
+      <div>0.236</div><div class="ext-label">امتداد 4.237</div>
+    </button>
+    <button class="fibo-btn" data-val="0.382" data-ext="2.618" onclick="selectFibo(this)">
+      <div>0.382</div><div class="ext-label">امتداد 2.618</div>
+    </button>
+    <button class="fibo-btn" data-val="0.500" data-ext="2.000" onclick="selectFibo(this)">
+      <div>0.500</div><div class="ext-label">امتداد 2.000</div>
+    </button>
+    <button class="fibo-btn active" data-val="0.618" data-ext="1.618" onclick="selectFibo(this)">
+      <div>0.618</div><div class="ext-label">امتداد 1.618</div>
+    </button>
+    <button class="fibo-btn" data-val="0.786" data-ext="1.272" onclick="selectFibo(this)">
+      <div>0.786</div><div class="ext-label">امتداد 1.272</div>
+    </button>
+  </div>
+  <div class="auto-ext">
+    <span>الامتداد المحسوب تلقائياً</span>
+    <span id="extDisplay">1.618</span>
+  </div>
+</div>
+
+<button class="calc-btn" onclick="calculate()">احسب نقطة الدخول ⚡</button>
+
+<!-- النتائج -->
+<div class="results" id="results">
+
+  <div class="entry-box" style="margin-top:20px">
+    <div class="entry-label">🎯 زمن الدخول من بداية الموجة الأم</div>
+    <div class="entry-value" id="entryTime">—</div>
+    <div class="entry-sub" id="entrySub"></div>
+  </div>
+
+  <div class="window-box">
+    <div class="window-title">🪟 نافذة الدخول الزمنية</div>
+    <div class="window-row">
+      <label>بداية النافذة (امتداد الفعلي)</label>
+      <span style="color:#fbbf24;font-weight:600" id="winStart">—</span>
+    </div>
+    <div class="window-row">
+      <label>نهاية النافذة (امتداد المتوقع)</label>
+      <span style="color:#f97316;font-weight:600" id="winEnd">—</span>
+    </div>
+    <div class="window-row window-divider">
+      <label>زمن الدخول الفعلي</label>
+      <span style="color:#4ade80;font-weight:700" id="winEntry">—</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 تفاصيل الحساب</div>
+    <div class="result-row sub"><label>الموجة الأم</label><span class="val" id="d1">—</span></div>
+    <div class="result-row sub"><label id="d2label">التصحيح المتوقع</label><span class="val" id="d2">—</span></div>
+    <div class="result-row sub"><label id="d3label">امتداد التصحيح الفعلي</label><span class="val" id="d3">—</span></div>
+    <div class="result-row sub"><label id="d4label">امتداد التصحيح المتوقع</label><span class="val" id="d4">—</span></div>
+    <div class="result-row hl"><label>الفارق بين الامتدادين</label><span class="val" id="d5">—</span></div>
+    <div class="result-row hl"><label>زمن الدخول = الأم + الفارق</label><span class="val" id="d6">—</span></div>
+    <div class="result-row"><label>دقة النموذج</label><span class="val" id="d7">—</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⏳ عداد الدخول</div>
+    <div class="countdown-box">
+      <div id="cdIdle">
+        <div style="color:#475569;font-size:0.85rem;margin-bottom:12px">ابدأ العداد عند بداية الموجة الأم</div>
+        <button class="start-btn" onclick="startCountdown()">ابدأ العداد ▶</button>
+      </div>
+      <div id="cdRunning" style="display:none">
+        <div class="countdown-num" id="cdNum">0:00</div>
+        <div class="progress-bar"><div class="progress-fill" id="cdBar"></div></div>
+        <div class="cd-sub">متبقي حتى الدخول</div>
+        <button class="stop-btn" onclick="stopCountdown()">إيقاف</button>
+      </div>
+      <div id="cdDone" style="display:none">
+        <div class="ring">🔔 ادخل الآن!</div>
+        <button class="start-btn" onclick="startCountdown()">إعادة</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let selectedFibo = 0.618;
+  let selectedExt = 1.618;
+  let entrySeconds = 0;
+  let cdInterval = null;
+  let cdTotal = 0;
+  let cdLeft = 0;
+
+  function selectFibo(btn) {
+    document.querySelectorAll('.fibo-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedFibo = parseFloat(btn.dataset.val);
+    selectedExt = parseFloat(btn.dataset.ext);
+    document.getElementById('extDisplay').textContent = selectedExt.toFixed(3).replace(/\.?0+$/, '');
+    document.getElementById('results').classList.remove('visible');
+  }
+
+  function toSec(minId, secId) {
+    return (parseInt(document.getElementById(minId).value) || 0) * 60
+         + (parseInt(document.getElementById(secId).value) || 0);
+  }
+
+  function fmt(s) {
+    s = Math.round(Math.abs(s));
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m + ':' + sec.toString().padStart(2, '0');
+  }
+
+  function calculate() {
+    const mSec = toSec('motherMin', 'motherSec');
+    const cSec = toSec('corrMin', 'corrSec');
+    if (!mSec || !cSec) { alert('أدخل الأوقات أولاً'); return; }
+
+    const expectedCorr = mSec * selectedFibo;
+    const actualExt   = cSec * selectedExt;
+    const expectedExt = expectedCorr * selectedExt;
+    const diff        = Math.abs(actualExt - expectedExt);
+    const entry       = mSec + diff;
+    const winStart    = Math.min(actualExt, expectedExt);
+    const winEnd      = Math.max(actualExt, expectedExt);
+    const score       = diff <= 30 ? 'ممتاز ✅' : diff <= 60 ? 'جيد ⚠️' : 'ضعيف ❌';
+
+    entrySeconds = Math.round(entry);
+
+    document.getElementById('entryTime').textContent = fmt(entry);
+    document.getElementById('entrySub').textContent =
+      'الموجة الأم ' + fmt(mSec) + ' + فارق ' + fmt(diff);
+
+    document.getElementById('winStart').textContent  = fmt(winStart);
+    document.getElementById('winEnd').textContent    = fmt(winEnd);
+    document.getElementById('winEntry').textContent  = fmt(entry);
+
+    document.getElementById('d1').textContent = fmt(mSec);
+    document.getElementById('d2label').textContent = 'التصحيح المتوقع (الأم × ' + selectedFibo + ')';
+    document.getElementById('d2').textContent = fmt(expectedCorr);
+    document.getElementById('d3label').textContent = 'امتداد التصحيح الفعلي (× ' + selectedExt + ')';
+    document.getElementById('d3').textContent = fmt(actualExt);
+    document.getElementById('d4label').textContent = 'امتداد التصحيح المتوقع (× ' + selectedExt + ')';
+    document.getElementById('d4').textContent = fmt(expectedExt);
+    document.getElementById('d5').textContent = fmt(diff);
+    document.getElementById('d6').textContent = fmt(entry);
+    document.getElementById('d7').textContent = score;
+
+    // reset countdown
+    stopCountdown();
+    document.getElementById('cdIdle').style.display = 'block';
+    document.getElementById('cdRunning').style.display = 'none';
+    document.getElementById('cdDone').style.display = 'none';
+
+    document.getElementById('results').classList.add('visible');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function startCountdown() {
+    if (!entrySeconds) return;
+    clearInterval(cdInterval);
+    cdTotal = entrySeconds;
+    cdLeft  = entrySeconds;
+    document.getElementById('cdIdle').style.display    = 'none';
+    document.getElementById('cdDone').style.display    = 'none';
+    document.getElementById('cdRunning').style.display = 'block';
+    updateCd();
+    cdInterval = setInterval(() => {
+      cdLeft--;
+      if (cdLeft <= 0) {
+        cdLeft = 0;
+        clearInterval(cdInterval);
+        document.getElementById('cdRunning').style.display = 'none';
+        document.getElementById('cdDone').style.display    = 'block';
+      }
+      updateCd();
+    }, 1000);
+  }
+
+  function stopCountdown() {
+    clearInterval(cdInterval);
+    document.getElementById('cdRunning').style.display = 'none';
+    document.getElementById('cdDone').style.display    = 'none';
+    document.getElementById('cdIdle').style.display    = 'block';
+  }
+
+  function updateCd() {
+    document.getElementById('cdNum').textContent = fmt(cdLeft);
+    const pct = cdTotal > 0 ? ((cdTotal - cdLeft) / cdTotal * 100) : 0;
+    document.getElementById('cdBar').style.width = pct + '%';
+  }
+</script>
+</body>
+</html>
