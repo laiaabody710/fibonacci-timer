@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="حاسبة فيبو">
+<title>حاسبة التوقيت الزمني</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  background: #0a0f1e;
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  color: #e2e8f0;
+  padding: 20px 14px 40px;
+}
+h1 { text-align:center; font-size:1.35rem; font-weight:700; margin-bottom:4px; }
+.subtitle { text-align:center; color:#64748b; font-size:0.8rem; margin-bottom:24px; }
+.card { background:#111827; border:1px solid #1e2d3d; border-radius:14px; padding:18px; margin-bottom:14px; }
+.card-title { font-size:0.72rem; font-weight:600; color:#4a9eff; letter-spacing:.08em; text-transform:uppercase; margin-bottom:14px; }
+.grp { margin-bottom:12px; }
+.grp label { display:block; font-size:0.8rem; color:#94a3b8; margin-bottom:3px; }
+.grp .hint { font-size:0.7rem; color:#475569; margin-bottom:5px; display:block; }
+.tfields { display:flex; align-items:center; gap:6px; }
+.fw { position:relative; }
+.fw input {
+  width:72px; background:#0d1526; border:1px solid #1e3a5f;
+  border-radius:8px; padding:10px 26px 10px 10px;
+  color:#e2e8f0; font-size:1rem; outline:none;
+}
+.fw input:focus { border-color:#4a9eff; }
+.fw .u { position:absolute; left:7px; top:50%; transform:translateY(-50%); font-size:0.7rem; color:#475569; }
+.sep { color:#4a9eff; font-size:1.1rem; font-weight:700; }
+.fgrid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; }
+.fbtn {
+  background:#0d1526; border:1px solid #1e3a5f; border-radius:8px;
+  padding:9px 6px; color:#94a3b8; font-size:0.82rem;
+  cursor:pointer; text-align:center; transition:all .2s;
+}
+.fbtn:hover { border-color:#4a9eff; color:#4a9eff; }
+.fbtn.active { background:#1a3a6e; border-color:#4a9eff; color:#4a9eff; font-weight:700; }
+.fbtn .el { font-size:0.65rem; color:#475569; margin-top:2px; }
+.fbtn.active .el { color:#4a9eff; }
+.aext {
+  margin-top:10px; background:#0d1526; border:1px solid #1e3a5f;
+  border-radius:8px; padding:9px 13px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.aext span:first-child { color:#64748b; font-size:0.76rem; }
+.aext span:last-child { color:#4a9eff; font-weight:700; }
+.cbtn {
+  width:100%; background:linear-gradient(135deg,#1a56db,#4a9eff);
+  border:none; border-radius:10px; padding:14px;
+  color:#fff; font-size:1rem; font-weight:700;
+  cursor:pointer; margin-top:2px;
+}
+.results { display:none; margin-top:18px; }
+.results.show { display:block; }
+
+/* خطوات الحساب */
+.steps { display:flex; flex-direction:column; gap:8px; }
+.step {
+  background:#0d1526; border:1px solid #1e3a5f;
+  border-radius:10px; padding:12px 14px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.step.hl { background:#0d1f3c; border-color:#2a4a8f; }
+.step label { color:#94a3b8; font-size:0.8rem; line-height:1.4; }
+.step .val { color:#e2e8f0; font-weight:700; font-variant-numeric:tabular-nums; direction:ltr; font-size:1rem; white-space:nowrap; margin-right:8px; }
+.step.hl .val { color:#4a9eff; font-size:1.05rem; }
+
+/* نتيجة الدخول */
+.ebox {
+  background:linear-gradient(135deg,#0a2a0a,#0d3d1a);
+  border:1px solid #16a34a; border-radius:12px;
+  padding:18px; text-align:center; margin-bottom:10px;
+}
+.elabel { font-size:0.72rem; color:#4ade80; letter-spacing:.08em; margin-bottom:6px; }
+.evalue { font-size:2.5rem; font-weight:800; color:#4ade80; font-variant-numeric:tabular-nums; direction:ltr; }
+.esub { font-size:0.73rem; color:#16a34a; margin-top:5px; }
+
+/* نافذة الدخول */
+.wbox {
+  background:#0d1a2e; border:1px solid #1e3a5f;
+  border-radius:10px; padding:12px 14px; margin-bottom:10px;
+}
+.wtitle { font-size:0.7rem; color:#4a9eff; margin-bottom:8px; }
+.wrow { display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:4px; }
+.wrow label { color:#94a3b8; }
+.wdiv { border-top:1px solid #1e3a5f; margin-top:6px; padding-top:6px; }
+
+/* عداد */
+.cdbox { background:#0d1526; border:1px solid #1e3a5f; border-radius:12px; padding:16px; text-align:center; }
+.cdnum { font-size:3rem; font-weight:800; color:#4a9eff; font-variant-numeric:tabular-nums; direction:ltr; line-height:1; }
+.pbar { height:6px; background:#1e2d3d; border-radius:3px; margin:12px 0 8px; overflow:hidden; }
+.pfill { height:100%; background:linear-gradient(90deg,#1a56db,#4a9eff); border-radius:3px; transition:width 1s linear; width:0%; }
+.cdsub { font-size:0.78rem; color:#64748b; margin-bottom:10px; }
+.sbtn { background:#16a34a; border:none; border-radius:8px; padding:10px 28px; color:#fff; font-size:0.9rem; font-weight:600; cursor:pointer; }
+.xbtn { background:#dc2626; border:none; border-radius:8px; padding:10px 28px; color:#fff; font-size:0.9rem; font-weight:600; cursor:pointer; }
+.ring { font-size:1.8rem; animation:pulse .5s ease infinite alternate; margin-bottom:8px; }
+@keyframes pulse { from{opacity:.4} to{opacity:1} }
+.score { display:inline-block; margin-top:6px; font-size:0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>⚡ حاسبة التوقيت الزمني</h1>
+<p class="subtitle">فيبوناتشي الزمني × السعري — نقطة الدخول الدقيقة</p>
+
+<div class="card">
+  <div class="card-title">📊 البيانات الزمنية</div>
+  <div class="grp">
+    <label>زمن الموجة الأم</label>
+    <span class="hint">الموجة الرئيسية الهابطة أو الصاعدة</span>
+    <div class="tfields">
+      <div class="fw"><input type="number" id="mMin" min="0" placeholder="0"><span class="u">د</span></div>
+      <span class="sep">:</span>
+      <div class="fw"><input type="number" id="mSec" min="0" max="59" placeholder="0"><span class="u">ث</span></div>
+    </div>
+  </div>
+  <div class="grp">
+    <label>زمن التصحيح الفعلي على الشارت</label>
+    <span class="hint">من نهاية الموجة حتى القمة / القاع</span>
+    <div class="tfields">
+      <div class="fw"><input type="number" id="cMin" min="0" placeholder="0"><span class="u">د</span></div>
+      <span class="sep">:</span>
+      <div class="fw"><input type="number" id="cSec" min="0" max="59" placeholder="0"><span class="u">ث</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">📐 مستوى فيبوناتشي للتصحيح</div>
+  <div class="fgrid">
+    <button class="fbtn" data-f="0.236" data-e="4.237" onclick="pick(this)">
+      <div>0.236</div><div class="el">↔ 4.237</div>
+    </button>
+    <button class="fbtn" data-f="0.382" data-e="2.618" onclick="pick(this)">
+      <div>0.382</div><div class="el">↔ 2.618</div>
+    </button>
+    <button class="fbtn" data-f="0.500" data-e="2.000" onclick="pick(this)">
+      <div>0.500</div><div class="el">↔ 2.000</div>
+    </button>
+    <button class="fbtn active" data-f="0.618" data-e="1.618" onclick="pick(this)">
+      <div>0.618</div><div class="el">↔ 1.618</div>
+    </button>
+    <button class="fbtn" data-f="0.786" data-e="1.272" onclick="pick(this)">
+      <div>0.786</div><div class="el">↔ 1.272</div>
+    </button>
+  </div>
+  <div class="aext">
+    <span>الامتداد تلقائياً</span>
+    <span id="extShow">1.618</span>
+  </div>
+</div>
+
+<button class="cbtn" onclick="calc()">احسب نقطة الدخول ⚡</button>
+
+<div class="results" id="results">
+
+  <!-- خطوات الحساب -->
+  <div class="card" style="margin-top:18px">
+    <div class="card-title">📋 خطوات الحساب</div>
+    <div class="steps">
+      <div class="step">
+        <label>① الموجة الأم</label>
+        <span class="val" id="s1">—</span>
+      </div>
+      <div class="step">
+        <label id="s2l">② التصحيح المتوقع<br>(الأم × فيبو)</label>
+        <span class="val" id="s2">—</span>
+      </div>
+      <div class="step">
+        <label>③ التصحيح الفعلي على الشارت</label>
+        <span class="val" id="s3">—</span>
+      </div>
+      <div class="step hl">
+        <label id="s4l">④ امتداد المتوقع<br>(② × الامتداد)</label>
+        <span class="val" id="s4">—</span>
+      </div>
+      <div class="step hl">
+        <label id="s5l">⑤ امتداد الفعلي<br>(③ × الامتداد)</label>
+        <span class="val" id="s5">—</span>
+      </div>
+      <div class="step" style="background:#1a1a0d;border-color:#7a6a00">
+        <label>⑥ الفارق (④ − ⑤)</label>
+        <span class="val" id="s6" style="color:#fbbf24">—</span>
+      </div>
+      <div class="step" style="background:#0a1f0a;border-color:#16a34a">
+        <label>⑦ زمن الدخول<br>(الأم + الفارق)</label>
+        <span class="val" id="s7" style="color:#4ade80;font-size:1.1rem">—</span>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:10px"><span class="score" id="score"></span></div>
+  </div>
+
+  <!-- نتيجة الدخول -->
+  <div class="ebox">
+    <div class="elabel">🎯 زمن الدخول من بداية الموجة الأم</div>
+    <div class="evalue" id="eTime">—</div>
+    <div class="esub" id="eSub"></div>
+  </div>
+
+  <!-- نافذة الدخول -->
+  <div class="wbox">
+    <div class="wtitle">🪟 نافذة الدخول الزمنية</div>
+    <div class="wrow"><label>بداية النافذة (امتداد الفعلي)</label><span style="color:#fbbf24;font-weight:600" id="w1">—</span></div>
+    <div class="wrow"><label>نهاية النافذة (امتداد المتوقع)</label><span style="color:#f97316;font-weight:600" id="w2">—</span></div>
+    <div class="wrow wdiv"><label>زمن الدخول</label><span style="color:#4ade80;font-weight:700" id="w3">—</span></div>
+  </div>
+
+  <!-- عداد -->
+  <div class="card">
+    <div class="card-title">⏳ عداد الدخول — ابدأه عند بداية الموجة الأم</div>
+    <div class="cdbox">
+      <div id="idle"><div style="color:#475569;font-size:0.82rem;margin-bottom:10px">اضغط عند بداية الموجة الأم</div><button class="sbtn" onclick="startCD()">ابدأ العداد ▶</button></div>
+      <div id="running" style="display:none">
+        <div class="cdnum" id="cdNum">0:00</div>
+        <div class="pbar"><div class="pfill" id="pf"></div></div>
+        <div class="cdsub">متبقي حتى الدخول</div>
+        <button class="xbtn" onclick="stopCD()">إيقاف</button>
+      </div>
+      <div id="done" style="display:none">
+        <div class="ring">🔔 ادخل الآن!</div>
+        <button class="sbtn" onclick="startCD()">إعادة</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let fibo = 0.618, ext = 1.618, entryS = 0;
+let cdT = 0, cdL = 0, cdInt = null;
+
+function pick(b) {
+  document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  fibo = parseFloat(b.dataset.f);
+  ext  = parseFloat(b.dataset.e);
+  document.getElementById('extShow').textContent = ext.toFixed(3).replace(/\.?0+$/,'');
+  document.getElementById('results').classList.remove('show');
+}
+
+function toS(mId, sId) {
+  return (parseInt(document.getElementById(mId).value)||0)*60
+       + (parseInt(document.getElementById(sId).value)||0);
+}
+
+function fmt(s) {
+  s = Math.round(Math.abs(s));
+  return Math.floor(s/60) + ':' + (s%60).toString().padStart(2,'0');
+}
+
+function calc() {
+  const mS = toS('mMin','mSec');
+  const cS = toS('cMin','cSec');
+  if (!mS || !cS) { alert('أدخل الأوقات أولاً'); return; }
+
+  // كل خطوة تُقرَّب لأقرب 5 ثوانٍ كما يحسب يدوياً
+  function r5(s) { return Math.round(s/5)*5; }
+  const expectedCorr    = r5(mS * fibo);          // ② الأم × فيبو
+  const actualCorr      = cS;                      // ③ الفعلي
+  const expectedCorrExt = r5(expectedCorr * ext);  // ④ المتوقع × الامتداد
+  const actualCorrExt   = r5(actualCorr * ext);    // ⑤ الفعلي × الامتداد
+  const diff            = Math.abs(expectedCorrExt - actualCorrExt); // ⑥ الفارق
+  const entry           = mS + diff;                       // ⑦ الأم + الفارق
+
+  entryS = Math.round(entry);
+
+  const winStart = Math.min(actualCorrExt, expectedCorrExt);
+  const winEnd   = Math.max(actualCorrExt, expectedCorrExt);
+  const score    = diff <= 30 ? 'ممتاز ✅' : diff <= 60 ? 'جيد ⚠️' : 'ضعيف ❌';
+
+  // تحديث خطوات الحساب
+  document.getElementById('s1').textContent = fmt(mS);
+  document.getElementById('s2l').innerHTML  = `② التصحيح المتوقع<br>(الأم × ${fibo})`;
+  document.getElementById('s2').textContent = fmt(expectedCorr);
+  document.getElementById('s3').textContent = fmt(actualCorr);
+  document.getElementById('s4l').innerHTML  = `④ امتداد المتوقع<br>(② × ${ext})`;
+  document.getElementById('s4').textContent = fmt(expectedCorrExt);
+  document.getElementById('s5l').innerHTML  = `⑤ امتداد الفعلي<br>(③ × ${ext})`;
+  document.getElementById('s5').textContent = fmt(actualCorrExt);
+  document.getElementById('s6').textContent = fmt(diff);
+  document.getElementById('s7').textContent = fmt(entry);
+  document.getElementById('score').textContent = 'دقة النموذج: ' + score;
+
+  // نتيجة الدخول
+  document.getElementById('eTime').textContent = fmt(entry);
+  document.getElementById('eSub').textContent  =
+    'الأم ' + fmt(mS) + ' + فارق ' + fmt(diff);
+
+  // نافذة الدخول
+  document.getElementById('w1').textContent = fmt(winStart);
+  document.getElementById('w2').textContent = fmt(winEnd);
+  document.getElementById('w3').textContent = fmt(entry);
+
+  // reset countdown
+  stopCD();
+  document.getElementById('results').classList.add('show');
+  document.getElementById('results').scrollIntoView({behavior:'smooth'});
+}
+
+function startCD() {
+  if (!entryS) return;
+  clearInterval(cdInt);
+  cdT = entryS; cdL = entryS;
+  document.getElementById('idle').style.display    = 'none';
+  document.getElementById('done').style.display    = 'none';
+  document.getElementById('running').style.display = 'block';
+  tick();
+  cdInt = setInterval(() => { cdL--; if (cdL<=0){cdL=0;clearInterval(cdInt);document.getElementById('running').style.display='none';document.getElementById('done').style.display='block';} tick(); }, 1000);
+}
+
+function stopCD() {
+  clearInterval(cdInt);
+  document.getElementById('running').style.display = 'none';
+  document.getElementById('done').style.display    = 'none';
+  document.getElementById('idle').style.display    = 'block';
+}
+
+function tick() {
+  document.getElementById('cdNum').textContent = fmt(cdL);
+  document.getElementById('pf').style.width = cdT>0 ? ((cdT-cdL)/cdT*100)+'%' : '0%';
+}
+</script>
+</body>
+</html>
